@@ -1,29 +1,170 @@
-# Simple Developer Exercise 
+# User Profile API
 
-The savvy cats over at SMART Pump would like to be able to allow users to login to their account, check their balance and update their personal details. Write a simple web application (API and UI) using node.js and lowdb that lets users accomplish those tasks. 
+A simple REST API for user authentication and profile management built with Express.js and lowdb.
 
-Feel free to use any other libraries or tool chains as long as the core code is javascript and node.js. npm (https://www.npmjs.org) is your friend - no need to recreate the wheel. 
+## Prerequisites
 
-You will find the base data file in `/data`
+- Node.js (v14 or higher)
+- npm (Node Package Manager)
 
-Wireframes: `assets/wireframes.png`
+## Project Structure
 
-## Time limits
+```
+.
+├── api/                # Backend API
+│   ├── routes/        # API routes
+│   ├── tests/         # Test files
+│   └── index.js       # API entry point
+├── client/            # Frontend application
+│   ├── public/        # Static files
+│   └── server.js      # Client server
+└── data/              # Database files
+    └── users.json     # User data
+```
 
-This exercise is meant showcase your creativity and talent in problem solving against a real world scenario. To that end it should not consume your every waking moment. We recommend at max spending 3 evenings of time on the exercise. 
+## Installation
 
-## Requirements
+1. Clone the repository:
 
-* Login to the app via email and password
-* Restrict access to valid a User
-* Once logged in show the details of the user on the page
-* Authorized users can check their account balance
-* Allow the user to change their details
-* lowdb (DB) -> https://github.com/typicode/lowdb
-* node.js -> http://nodejs.org/ 
+```bash
+git clone <repository-url>
+cd zeroCopy
+```
 
-## Bonus Points
+2. Install API dependencies:
 
-* Fully responsive UI
-* Unit Tests of the API
-* Functional Tests of the UI
+```bash
+cd api
+npm install
+```
+
+3. Install client dependencies:
+
+```bash
+cd ../client
+npm install
+```
+
+## Running the Application
+
+1. Start the API server (from the api directory):
+
+```bash
+cd api
+npm start
+```
+
+The API will be available at `http://localhost:3000`
+
+2. Start the client server (from the client directory):
+
+```bash
+cd client
+npm start
+```
+
+The client application will be available at `http://localhost:8080`
+
+## Testing
+
+The API includes a comprehensive test suite using Jest and Supertest.
+
+To run the tests:
+
+```bash
+cd api
+npm test
+```
+
+### Test Coverage
+
+The test suite covers:
+
+- Authentication
+
+  - Login with valid/invalid credentials
+  - Token validation
+  - Error handling
+
+- User Profile
+  - Profile retrieval
+  - Profile updates (full and partial)
+  - Authorization checks
+  - Data validation
+
+### Available Test Users
+
+For testing the application, you can use these credentials:
+
+```
+Email: henderson.briggs@geeknet.net
+Password: 23derd*334
+```
+
+## API Endpoints
+
+### Authentication
+
+- `POST /api/auth/login`
+  - Login with email and password
+  - Returns JWT token and user data
+
+### User Profile
+
+- `GET /api/users/profile`
+
+  - Get current user profile
+  - Requires authentication token
+
+- `PUT /api/users/update`
+  - Update user profile
+  - Requires authentication token
+  - Supports partial updates
+
+## Development
+
+### Running Tests in Watch Mode
+
+For development, you can run tests in watch mode:
+
+```bash
+cd api
+npm test -- --watch
+```
+
+### Debugging
+
+To debug the API:
+
+1. Start the API with Node inspector:
+
+```bash
+node --inspect api/index.js
+```
+
+2. Open Chrome DevTools and connect to the debugger
+
+## Troubleshooting
+
+### Common Issues
+
+1. Port already in use:
+
+```bash
+# Kill process using port 3000 (API)
+sudo lsof -i :3000
+kill -9 <PID>
+
+# Kill process using port 8080 (Client)
+sudo lsof -i :8080
+kill -9 <PID>
+```
+
+2. Database connection issues:
+
+- Check if `data/users.json` exists and has valid JSON
+- Ensure write permissions on the data directory
+
+## License
+
+ISC

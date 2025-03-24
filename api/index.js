@@ -17,6 +17,7 @@ app.use(
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });

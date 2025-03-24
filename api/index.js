@@ -4,20 +4,32 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: false,
+    preflightContinue: false,
+  })
+);
+
 app.use(express.json());
 
-// Routes
 app.use('/api/auth', require('./routes/auth'));
 
-// Error handling middleware
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not Found' });
+});
+
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: err.message,
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`API server running at http://localhost:${PORT}`);
 });

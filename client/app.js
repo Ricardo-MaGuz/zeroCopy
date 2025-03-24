@@ -17,15 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: 'Failed to parse error response' }));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
+
+      const data = await response.json();
 
       // Store token and user data
       localStorage.setItem('token', data.token);

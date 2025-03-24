@@ -3,7 +3,6 @@ const FileSync = require('lowdb/adapters/FileSync');
 const path = require('path');
 
 const adapter = new FileSync(path.join(__dirname, '../data/users.json'));
-
 const db = low(adapter);
 
 db.defaults({ users: [] }).write();

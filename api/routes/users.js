@@ -20,35 +20,51 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+// Get user profile
+router.get('/profile', verifyToken, (req, res) => {
+  try {
+    const user = db.get('users').find({ _id: req.userId }).value();
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { password, ...userProfile } = user;
+    res.json(userProfile);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user profile' });
+  }
+});
+
 // Update user profile
 router.put('/update', verifyToken, async (req, res) => {
   try {
     const { name, phone, address } = req.body;
     const userId = req.userId;
 
-    // Find user in database
     const user = db.get('users').find({ _id: userId }).value();
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update user data
     const updatedUser = {
       ...user,
       name: name || user.name,
       phone: phone || user.phone,
       address: address || user.address,
+      updatedAt: new Date().toISOString(),
     };
 
-    // Save to database
     db.get('users').find({ _id: userId }).assign(updatedUser).write();
 
-    // Remove sensitive data before sending response
     const { password, ...userWithoutPassword } = updatedUser;
     res.json(userWithoutPassword);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating user profile' });
+    res.status(500).json({
+      message: 'Error updating user profile',
+      error: error.message,
+    });
   }
 });
 

@@ -9,12 +9,13 @@ app.use(
     origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: false,
+    credentials: true,
     preflightContinue: false,
   })
 );
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
@@ -31,6 +32,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`API server running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => {});

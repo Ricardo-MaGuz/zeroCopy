@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if user is logged in
   const token = localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -8,36 +7,58 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // DOM Elements
   const profileForm = document.getElementById('profileForm');
   const editBtn = document.getElementById('editBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const balanceElement = document.getElementById('balance');
   const profileImage = document.getElementById('profileImage');
+  const errorMessage = document.createElement('div');
+  errorMessage.className = 'error-message';
+  profileForm.appendChild(errorMessage);
 
-  // Populate form with user data
-  function populateForm() {
-    document.getElementById('firstName').value = userData.name?.first || '';
-    document.getElementById('lastName').value = userData.name?.last || '';
-    document.getElementById('email').value = userData.email || '';
-    document.getElementById('phone').value = userData.phone || '';
-    document.getElementById('address').value = userData.address || '';
-    balanceElement.textContent = userData.balance || 'N/A';
+  async function fetchUserProfile() {
+    try {
+      const response = await fetch('http://localhost:3000/api/users/profile', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    // Set profile picture
-    if (userData.picture) {
-      profileImage.src = userData.picture;
-      profileImage.alt = `${userData.name?.first} ${userData.name?.last}'s profile picture`;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch profile');
+      }
+
+      const user = await response.json();
+      localStorage.setItem('user', JSON.stringify(user));
+      populateForm(user);
+    } catch (error) {
+      errorMessage.textContent = error.message || 'Failed to load profile data';
+    }
+  }
+
+  function populateForm(user = userData) {
+    document.getElementById('firstName').value = user.name?.first || '';
+    document.getElementById('lastName').value = user.name?.last || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone || '';
+    document.getElementById('address').value = user.address || '';
+    balanceElement.textContent = user.balance || 'N/A';
+
+    if (user.picture) {
+      profileImage.src = user.picture;
+      profileImage.alt = `${user.name?.first} ${user.name?.last}'s profile picture`;
     } else {
       profileImage.src = 'https://via.placeholder.com/150';
       profileImage.alt = 'Default profile picture';
     }
   }
 
-  // Toggle form edit mode
   function toggleEditMode(editable) {
-    const inputs = profileForm.querySelectorAll('input');
+    const inputs = profileForm.querySelectorAll('input:not([name="email"])');
     inputs.forEach((input) => {
       input.readOnly = !editable;
     });
@@ -45,25 +66,27 @@ document.addEventListener('DOMContentLoaded', () => {
       ? 'flex'
       : 'none';
     editBtn.style.display = editable ? 'none' : 'block';
+    errorMessage.textContent = '';
   }
 
-  // Event Listeners
   editBtn.addEventListener('click', () => toggleEditMode(true));
+
   cancelBtn.addEventListener('click', () => {
     toggleEditMode(false);
-    populateForm(); // Reset form to original values
+    populateForm();
   });
 
   profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    errorMessage.textContent = '';
 
     const updatedData = {
       name: {
-        first: document.getElementById('firstName').value,
-        last: document.getElementById('lastName').value,
+        first: document.getElementById('firstName').value.trim(),
+        last: document.getElementById('lastName').value.trim(),
       },
-      phone: document.getElementById('phone').value,
-      address: document.getElementById('address').value,
+      phone: document.getElementById('phone').value.trim(),
+      address: document.getElementById('address').value.trim(),
     };
 
     try {
@@ -71,21 +94,32 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updatedData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        throw new Error(
+          data.message || data.errors?.[0]?.msg || 'Failed to update profile'
+        );
       }
 
-      const updatedUser = await response.json();
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('user', JSON.stringify(data));
+      populateForm(data);
       toggleEditMode(false);
-      alert('Profile updated successfully!');
+
+      errorMessage.style.color = '#2ecc71';
+      errorMessage.textContent = 'Profile updated successfully!';
+      setTimeout(() => {
+        errorMessage.textContent = '';
+      }, 3000);
     } catch (error) {
-      alert('Failed to update profile: ' + error.message);
+      errorMessage.style.color = '#e74c3c';
+      errorMessage.textContent = error.message || 'Failed to update profile';
     }
   });
 
@@ -95,6 +129,5 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/';
   });
 
-  // Initial form population
-  populateForm();
+  fetchUserProfile();
 });

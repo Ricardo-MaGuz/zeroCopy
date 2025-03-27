@@ -10,12 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileForm = document.getElementById('profileForm');
   const editBtn = document.getElementById('editBtn');
   const cancelBtn = document.getElementById('cancelBtn');
+  const saveBtn = document.getElementById('saveBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const balanceElement = document.getElementById('balance');
   const profileImage = document.getElementById('profileImage');
   const errorMessage = document.createElement('div');
-  errorMessage.className = 'error-message';
+  const successToast = new bootstrap.Toast(
+    document.getElementById('successToast'),
+    {
+      delay: 3000,
+    }
+  );
+
+  errorMessage.className = 'error-message d-none';
   profileForm.appendChild(errorMessage);
+
+  // Function to show error message
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.color = '#e74c3c';
+    errorMessage.classList.remove('d-none');
+    if (message) {
+      setTimeout(() => {
+        errorMessage.classList.add('d-none');
+        errorMessage.textContent = '';
+      }, 3000);
+    }
+  }
 
   async function fetchUserProfile() {
     try {
@@ -36,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('user', JSON.stringify(user));
       populateForm(user);
     } catch (error) {
-      errorMessage.textContent = error.message || 'Failed to load profile data';
+      showError(error.message || 'Failed to load profile data');
     }
   }
 
@@ -59,27 +80,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleEditMode(editable) {
     const inputs = profileForm.querySelectorAll('input:not([name="email"])');
+    const editBtn = document.getElementById('editBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    // Toggle input readonly state
     inputs.forEach((input) => {
       input.readOnly = !editable;
     });
-    document.querySelector('.form-actions').style.display = editable
-      ? 'flex'
-      : 'none';
-    editBtn.style.display = editable ? 'none' : 'block';
+
+    // Toggle visibility of buttons
+    if (editable) {
+      editBtn.classList.add('d-none');
+      saveBtn.classList.remove('d-none');
+      cancelBtn.classList.remove('d-none');
+    } else {
+      editBtn.classList.remove('d-none');
+      saveBtn.classList.add('d-none');
+      cancelBtn.classList.add('d-none');
+    }
+
+    errorMessage.classList.add('d-none');
     errorMessage.textContent = '';
   }
 
-  editBtn.addEventListener('click', () => toggleEditMode(true));
+  // Event Listeners
+  editBtn.addEventListener('click', () => {
+    toggleEditMode(true);
+  });
 
   cancelBtn.addEventListener('click', () => {
     toggleEditMode(false);
     populateForm();
   });
 
-  profileForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorMessage.textContent = '';
-
+  // Handle form submission with save button
+  saveBtn.addEventListener('click', async () => {
     const updatedData = {
       name: {
         first: document.getElementById('firstName').value.trim(),
@@ -111,15 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('user', JSON.stringify(data));
       populateForm(data);
       toggleEditMode(false);
-
-      errorMessage.style.color = '#2ecc71';
-      errorMessage.textContent = 'Profile updated successfully!';
-      setTimeout(() => {
-        errorMessage.textContent = '';
-      }, 3000);
+      successToast.show();
     } catch (error) {
-      errorMessage.style.color = '#e74c3c';
-      errorMessage.textContent = error.message || 'Failed to update profile';
+      showError(error.message || 'Failed to update profile');
     }
   });
 

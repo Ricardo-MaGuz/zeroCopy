@@ -25,6 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
   errorMessage.className = 'error-message d-none';
   profileForm.appendChild(errorMessage);
 
+  // Function to handle profile image errors
+  function handleProfileImageError() {
+    profileImage.src = 'assets/download.png';
+    profileImage.alt = 'Default profile picture';
+  }
+
+  // Add error handler to profile image
+  profileImage.addEventListener('error', handleProfileImageError);
+
   // Function to show error message
   function showError(message) {
     errorMessage.textContent = message;
@@ -73,8 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       profileImage.src = user.picture;
       profileImage.alt = `${user.name?.first} ${user.name?.last}'s profile picture`;
     } else {
-      profileImage.src = 'https://via.placeholder.com/150';
-      profileImage.alt = 'Default profile picture';
+      handleProfileImageError();
     }
   }
 

@@ -1,12 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
-  const errorMessage = document.getElementById('errorMessage');
+  const errorToast = new bootstrap.Toast(
+    document.getElementById('errorToast'),
+    {
+      delay: 5000,
+      animation: true,
+    }
+  );
+  const toastMessage = document.getElementById('toastMessage');
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    // Clear previous error messages
-    errorMessage.textContent = '';
 
     // Get form data
     const email = document.getElementById('email').value;
@@ -42,8 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Redirect to user page
       window.location.href = '/user.html';
     } catch (error) {
-      errorMessage.textContent =
+      // Show error toast
+      toastMessage.textContent =
         error.message || 'An error occurred during login';
+      errorToast.show();
+
+      // Clear password field for security
+      document.getElementById('password').value = '';
     }
   });
 });
